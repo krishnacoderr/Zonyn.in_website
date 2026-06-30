@@ -29,6 +29,7 @@ export default function Booking() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Calendar popover state
   const [showCalendar, setShowCalendar] = useState(false);
@@ -188,14 +189,28 @@ export default function Booking() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
     setIsSubmitting(true);
+    setSubmitError(null);
 
-    // Simulate high-end server request latency
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/booking", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to submit booking inquiry");
+      }
+
       const newInquiry: BookingInquiry = {
         id: "inq-" + Math.random().toString(36).substring(2, 9),
         ...formData,
@@ -219,7 +234,11 @@ export default function Booking() {
         preferredTime: "",
         projectDetails: "",
       });
-    }, 1500);
+    } catch (err: any) {
+      console.error("Booking error:", err);
+      setSubmitError(err?.message || "Something went wrong. Please try again.");
+      setIsSubmitting(false);
+    }
   };
 
   const deleteInquiry = (id: string) => {
@@ -457,6 +476,12 @@ export default function Booking() {
                     />
                     {errors.projectDetails && <span className="text-[11px] font-mono text-red-500">{errors.projectDetails}</span>}
                   </div>
+
+                  {submitError && (
+                    <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs font-medium font-sans">
+                      {submitError}
+                    </div>
+                  )}
 
                   {/* Submit Button */}
                   <motion.button
