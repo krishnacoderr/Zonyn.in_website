@@ -225,14 +225,8 @@ export default function Booking() {
       setIsSubmitting(false);
       setIsSuccess(true);
       
-      // Attempt automatic redirect with a short, clean delay (e.g. 1 second)
-      setTimeout(() => {
-        try {
-          window.open(waUrl, "_blank");
-        } catch (e) {
-          window.location.href = waUrl;
-        }
-      }, 1000);
+      // Redirect to WhatsApp immediately on the same window to ensure single click works without being blocked as a popup
+      window.location.href = waUrl;
 
       // Reset form
       setFormData({
