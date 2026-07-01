@@ -237,7 +237,6 @@ export default function Booking() {
       const waMessage = `*New Consultation Request Details:*
 • *Name:* ${formData.name}
 • *Business Name:* ${formData.businessName}
-• *Email:* ${formData.email || "Not provided"}
 • *Phone Number:* ${formData.phoneNumber}
 • *Preferred Date:* ${formData.preferredDate}
 • *Preferred Time:* ${formData.preferredTime}
