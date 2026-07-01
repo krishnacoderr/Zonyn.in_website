@@ -170,7 +170,28 @@ export default function Booking() {
     if (!formData.name.trim()) newErrors.name = "Name is required";
     if (!formData.businessName.trim()) newErrors.businessName = "Business name is required";
     if (!formData.phoneNumber.trim()) newErrors.phoneNumber = "Phone number is required";
-    if (!formData.preferredDate) newErrors.preferredDate = "Preferred date is required";
+    
+    if (!formData.preferredDate) {
+      newErrors.preferredDate = "Preferred date is required";
+    } else {
+      // Prevent past dates in manual validation
+      const selectedParts = formData.preferredDate.split("-");
+      if (selectedParts.length === 3) {
+        const year = parseInt(selectedParts[0], 10);
+        const month = parseInt(selectedParts[1], 10) - 1;
+        const day = parseInt(selectedParts[2], 10);
+        const selectedDate = new Date(year, month, day);
+        selectedDate.setHours(0, 0, 0, 0);
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (selectedDate < today) {
+          newErrors.preferredDate = "Preferred date cannot be in the past";
+        }
+      }
+    }
+    
     if (!formData.preferredTime) newErrors.preferredTime = "Preferred time is required";
     if (!formData.projectDetails.trim()) newErrors.projectDetails = "Please tell us a bit about your project";
 
@@ -180,7 +201,11 @@ export default function Booking() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    let processedValue = value;
+    if (name === "phoneNumber") {
+      processedValue = value.replace(/\D/g, "");
+    }
+    setFormData((prev) => ({ ...prev, [name]: processedValue }));
     if (errors[name]) {
       setErrors((prev) => {
         const copy = { ...prev };
@@ -408,17 +433,27 @@ export default function Booking() {
                                 const isSelected = formData.preferredDate === formattedVal;
                                 const isToday = formatDateValue(new Date()) === formattedVal;
 
+                                // Disable past dates (midnight comparison)
+                                const cellDate = new Date(date.getTime());
+                                cellDate.setHours(0, 0, 0, 0);
+                                const todayMidnight = new Date();
+                                todayMidnight.setHours(0, 0, 0, 0);
+                                const isPast = cellDate < todayMidnight;
+
                                 return (
                                   <button
                                     key={idx}
                                     type="button"
-                                    onClick={() => handleSelectDay(date)}
-                                    className={`aspect-square w-full rounded-lg text-xs flex flex-col items-center justify-center relative transition-all cursor-pointer ${
-                                      isSelected
-                                        ? "bg-brand-orange text-white font-bold shadow-sm"
+                                    disabled={isPast}
+                                    onClick={() => !isPast && handleSelectDay(date)}
+                                    className={`aspect-square w-full rounded-lg text-xs flex flex-col items-center justify-center relative transition-all ${
+                                      isPast
+                                        ? "text-brand-muted/20 line-through cursor-not-allowed opacity-35 bg-transparent"
+                                        : isSelected
+                                        ? "bg-brand-orange text-white font-bold shadow-sm cursor-pointer"
                                         : isCurrentMonth
-                                        ? "text-brand-dark hover:bg-brand-border font-medium"
-                                        : "text-brand-muted/30 font-light hover:bg-brand-border/40"
+                                        ? "text-brand-dark hover:bg-brand-border font-medium cursor-pointer"
+                                        : "text-brand-muted/30 font-light hover:bg-brand-border/40 cursor-pointer"
                                     }`}
                                   >
                                     <span>{day}</span>
