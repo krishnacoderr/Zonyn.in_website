@@ -198,20 +198,6 @@ export default function Booking() {
     setSubmitError(null);
 
     try {
-      const response = await fetch("/api/booking", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to submit booking inquiry");
-      }
-
       const newInquiry: BookingInquiry = {
         id: "inq-" + Math.random().toString(36).substring(2, 9),
         ...formData,
